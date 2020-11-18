@@ -1,10 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace BootstrapUI\Test\TestCase\View\Helper;
 
 use BootstrapUI\View\Helper\FormHelper;
 use Cake\Core\Configure;
-use Cake\Http\ServerRequest as Request;
+use Cake\Http\ServerRequest;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
 use Cake\TestSuite\TestCase;
@@ -16,19 +17,24 @@ class FormHelperTest extends TestCase
     /**
      * @var \Cake\View\View
      */
-    protected $View;
+    public $View;
 
     /**
-     * @var FormHelper
+     * @var @var \BootstrapUI\View\Helper\FormHelper
      */
-    protected $Form;
+    public $Form;
 
     /**
      * @var array
      */
-    protected $article;
+    public $article;
 
-    public function setUp()
+    /**
+     * setUp method
+     *
+     * @return void
+     */
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -37,10 +43,21 @@ class FormHelperTest extends TestCase
         Configure::write('App.namespace', 'BootstrapUI\Test\TestCase\View\Helper');
         Configure::delete('Asset');
 
-        $request = new Request('articles/add');
+        $request = new ServerRequest([
+            'webroot' => '',
+            'base' => '',
+            'url' => '/articles/add',
+            'params' => [
+                'controller' => 'articles',
+                'action' => 'add',
+                'plugin' => null,
+            ],
+        ]);
         $this->View = new View($request);
 
-        $this->Form = new FormHelper($this->View);
+        $this->Form = new FormHelper($this->View, [
+            'autoSetCustomValidity' => false,
+        ]);
         $request = $request->withAttribute('here', '/articles/add');
         $request = $request->withParam('controller', 'articles');
         $request = $request->withParam('action', 'add');
@@ -62,12 +79,12 @@ class FormHelperTest extends TestCase
             ],
         ];
 
-        Security::getSalt('foo!');
+        Security::setSalt('foo!');
         Router::connect('/:controller', ['action' => 'index']);
         Router::connect('/:controller/:action/*');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         unset($this->Form, $this->View);
@@ -144,6 +161,8 @@ class FormHelperTest extends TestCase
 
     public function testStaticControl()
     {
+        $this->View->setRequest($this->View->getRequest()->withAttribute('formTokenData', []));
+
         unset($this->article['required']['title']);
         $this->article['defaults']['title'] = 'foo <u>bar</u>';
         $this->Form->create($this->article);
@@ -166,7 +185,10 @@ class FormHelperTest extends TestCase
             '/div',
         ];
         $this->assertHtml($expected, $result);
-        $this->assertSame(['title' => 'foo <u>bar</u>'], $this->Form->fields);
+        $this->assertSame(
+            ['title' => 'foo <u>bar</u>'],
+            $this->Form->getFormProtector()->__debugInfo()['fields']
+        );
 
         $this->Form->fields = [];
 
@@ -346,7 +368,6 @@ class FormHelperTest extends TestCase
             '/div',
             '/div',
         ];
-
         $this->assertHtml($expected, $result);
 
         $result = $this->Form->control('published');
@@ -357,6 +378,7 @@ class FormHelperTest extends TestCase
             'input' => [
                 'type' => 'hidden',
                 'name' => 'published',
+                'class' => '',
                 'value' => 0,
             ],
             'label' => ['for' => 'published'],
@@ -364,6 +386,7 @@ class FormHelperTest extends TestCase
                 'type' => 'checkbox',
                 'name' => 'published',
                 'id' => 'published',
+                'class' => '',
                 'value' => 1,
             ]],
             'Published',
@@ -892,13 +915,6 @@ class FormHelperTest extends TestCase
                 'role' => 'form',
                 'action' => '/articles/add',
             ],
-            'div' => ['style' => 'display:none;'],
-            'input' => [
-                'type' => 'hidden',
-                'name' => '_method',
-                'value' => 'POST',
-            ],
-            '/div',
         ];
         $this->assertHtml($expected, $result);
     }
@@ -936,13 +952,6 @@ class FormHelperTest extends TestCase
                 'action' => '/articles/add',
                 'class' => 'form-inline',
             ],
-            'div' => ['style' => 'display:none;'],
-            'input' => [
-                'type' => 'hidden',
-                'name' => '_method',
-                'value' => 'POST',
-            ],
-            '/div',
         ];
         $this->assertHtml($expected, $result);
     }
@@ -958,13 +967,6 @@ class FormHelperTest extends TestCase
                 'action' => '/articles/add',
                 'class' => 'form-horizontal',
             ],
-            'div' => ['style' => 'display:none;'],
-            'input' => [
-                'type' => 'hidden',
-                'name' => '_method',
-                'value' => 'POST',
-            ],
-            '/div',
         ];
         $this->assertHtml($expected, $result);
 
@@ -1068,13 +1070,6 @@ class FormHelperTest extends TestCase
                 'action' => '/articles/add',
                 'class' => 'form-horizontal',
             ],
-            'div' => ['style' => 'display:none;'],
-            'input' => [
-                'type' => 'hidden',
-                'name' => '_method',
-                'value' => 'POST',
-            ],
-            '/div',
         ];
         $this->assertHtml($expected, $result);
 

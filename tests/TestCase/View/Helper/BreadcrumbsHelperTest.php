@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace BootstrapUI\Test\TestCase\View\Helper;
 
 use Cake\TestSuite\TestCase;
@@ -9,14 +11,14 @@ class BreadcrumbsHelperTest extends TestCase
     /**
      * @var \Cake\View\View
      */
-    protected $View;
+    public $View;
 
     /**
      * @var \BootstrapUI\View\Helper\BreadcrumbsHelper
      */
-    protected $Breadcrumbs;
+    public $Breadcrumbs;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -28,7 +30,7 @@ class BreadcrumbsHelperTest extends TestCase
         }
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
         unset($this->Breadcrumbs, $this->View);

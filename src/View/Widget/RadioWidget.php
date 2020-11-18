@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace BootstrapUI\View\Widget;
 
 use Cake\View\Form\ContextInterface;
@@ -35,7 +37,7 @@ class RadioWidget extends \Cake\View\Widget\RadioWidget
      * @param \Cake\View\Form\ContextInterface $context The current form context.
      * @return string
      */
-    public function render(array $data, ContextInterface $context)
+    public function render(array $data, ContextInterface $context): string
     {
         $data += [
             'inline' => false,

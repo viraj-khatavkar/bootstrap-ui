@@ -5,13 +5,13 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/friendsofcake/bootstrap-ui.svg?style=flat-square)](https://packagist.org/packages/friendsofcake/bootstrap-ui)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://packagist.org/packages/friendsofcake/bootstrap-ui)
 
-Transparently use [Bootstrap 3][twbs3] with [CakePHP 3][cakephp].
+Transparently use [Bootstrap 3][twbs3] with [CakePHP 4][cakephp].
 
 For version info see [version map](https://github.com/FriendsOfCake/bootstrap-ui/wiki#version-map).
 
 ## Requirements
 
-* CakePHP 3.x
+* CakePHP 4.x
 * Bootstrap 3.x
 * jQuery 1.9+
 

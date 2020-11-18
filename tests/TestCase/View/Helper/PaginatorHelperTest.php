@@ -1,10 +1,13 @@
 <?php
+declare(strict_types=1);
+
 namespace BootstrapUI\Test\TestCase\View\Helper;
 
 use BootstrapUI\View\Helper\PaginatorHelper;
-use Cake\Http\ServerRequest as Request;
+use Cake\Core\Configure;
+use Cake\Http\ServerRequest;
+use Cake\I18n\I18n;
 use Cake\Routing\Router;
-use Cake\Routing\Route\DashedRoute;
 use Cake\TestSuite\TestCase;
 use Cake\View\View;
 
@@ -17,48 +20,88 @@ class PaginatorHelperTest extends TestCase
     /**
      * @var \Cake\View\View
      */
-    protected $View;
+    public $View;
 
     /**
      * @var \BootstrapUI\View\Helper\PaginatorHelper
      */
-    protected $Paginator;
+    public $Paginator;
 
     /**
-     * @var \Cake\Http\ServerRequest
+     * @var string
      */
-    protected $request;
+    public $locale;
 
     /**
      * setUp method
      *
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
+        Configure::write('Config.language', 'eng');
+
+        $request = new ServerRequest([
+            'params' => [
+                'plugin' => null,
+                'controller' => 'clients',
+                'action' => 'index',
+                '_ext' => null,
+                'pass' => [],
+            ],
+        ]);
+        $request = $request->withParam('paging', [
+            'Article' => [
+                'page' => 1,
+                'current' => 9,
+                'count' => 62,
+                'prevPage' => false,
+                'nextPage' => true,
+                'pageCount' => 7,
+                'sort' => null,
+                'direction' => null,
+                'limit' => null,
+            ],
+        ]);
+
+        $this->View = new View($request);
+        $this->Paginator = new PaginatorHelper($this->View);
+        $this->Paginator->Js = $this->getMockBuilder('Cake\View\Helper\PaginatorHelper')
+            ->setConstructorArgs([$this->View])
+            ->getMock();
+
+        Configure::write('Routing.prefixes', []);
         Router::reload();
-        Router::defaultRouteClass(DashedRoute::class);
+        Router::connect('/{controller}/{action}/*');
+        Router::setRequest($request);
 
-        $this->request = (new Request('/clients'))
-            ->withParam('controller', 'Clients')
-            ->withParam('action', 'index');
-
-        Router::connect('/:controller', ['action' => 'index']);
-        Router::connect('/:controller/:action/*');
-        Router::pushRequest($this->request);
+        $this->locale = I18n::getLocale();
     }
 
     /**
-     * testNumbers method
+     * tearDown method
      *
      * @return void
      */
-    public function testNumbers()
+    public function tearDown(): void
     {
-        $this->setupHelper([
-            'Clients' => [
+        parent::tearDown();
+        unset($this->View, $this->Paginator);
+
+        I18n::setLocale($this->locale);
+     }
+
+    /**
+     * testLinks method
+     *
+     * @return void
+     */
+    public function testLinks()
+    {
+        $request = $this->Paginator->getView()->getRequest()->withAttribute('paging', [
+            'Client' => [
                 'page' => 8,
                 'current' => 3,
                 'count' => 30,
@@ -67,24 +110,25 @@ class PaginatorHelperTest extends TestCase
                 'pageCount' => 15,
             ],
         ]);
-        $result = $this->Paginator->numbers();
+        $this->Paginator->getView()->setRequest($request);
+        $result = $this->Paginator->links();
         $expected = [
             'ul' => ['class' => 'pagination'],
-            '<li', ['a' => ['href' => '/clients?page=4']], '4', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=5']], '5', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=6']], '6', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=7']], '7', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=4']], '4', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=5']], '5', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=6']], '6', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=7']], '7', '/a', '/li',
             ['li' => ['class' => 'active']], '<span', '8', 'span' => ['class' => 'sr-only'], '(current)', '/span', '/span', '/li',
-            '<li', ['a' => ['href' => '/clients?page=9']], '9', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=10']], '10', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=11']], '11', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=12']], '12', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=9']], '9', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=10']], '10', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=11']], '11', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=12']], '12', '/a', '/li',
             '/ul',
         ];
         $this->assertHtml($expected, $result);
 
-        $this->Paginator->request = $this->Paginator->request->withParam('paging', [
-            'Clients' => [
+        $request = $this->Paginator->getView()->getRequest()->withParam('paging', [
+            'Client' => [
                 'page' => 8,
                 'current' => 3,
                 'count' => 30,
@@ -93,25 +137,26 @@ class PaginatorHelperTest extends TestCase
                 'pageCount' => 15,
             ],
         ]);
-        $result = $this->Paginator->numbers(['prev' => true, 'next' => true]);
+        $this->Paginator->getView()->setRequest($request);
+        $result = $this->Paginator->links(['prev' => true, 'next' => true]);
         $expected = [
             'ul' => ['class' => 'pagination'],
             ['li' => ['class' => 'previous disabled']], ['a' => []], ['span' => ['aria-hidden' => 'true']], '&laquo;', '/span', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=4']], '4', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=5']], '5', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=6']], '6', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=7']], '7', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=4']], '4', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=5']], '5', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=6']], '6', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=7']], '7', '/a', '/li',
             ['li' => ['class' => 'active']], '<span', '8', 'span' => ['class' => 'sr-only'], '(current)', '/span', '/span', '/li',
-            '<li', ['a' => ['href' => '/clients?page=9']], '9', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=10']], '10', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=11']], '11', '/a', '/li',
-            '<li', ['a' => ['href' => '/clients?page=12']], '12', '/a', '/li',
-            ['li' => ['class' => 'next']], ['a' => ['rel' => 'next', 'aria-label' => 'Next', 'href' => '/clients?page=9']], ['span' => ['aria-hidden' => 'true']], '&raquo;', '/span', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=9']], '9', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=10']], '10', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=11']], '11', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=12']], '12', '/a', '/li',
+            ['li' => ['class' => 'next']], ['a' => ['rel' => 'next', 'aria-label' => 'Next', 'href' => '/clients/index?page=9']], ['span' => ['aria-hidden' => 'true']], '&raquo;', '/span', '/a', '/li',
             '/ul',
         ];
         $this->assertHtml($expected, $result);
 
-        $this->setupHelper([
+        $request = $this->Paginator->getView()->getRequest()->withAttribute('paging', [
             'Client' => [
                 'page' => 1,
                 'current' => 1,
@@ -121,24 +166,17 @@ class PaginatorHelperTest extends TestCase
                 'pageCount' => 2,
             ],
         ]);
-        $result = $this->Paginator->numbers(['size' => 'lg']);
+        $this->Paginator->getView()->setRequest($request);
+        $result = $this->Paginator->links(['size' => 'lg']);
         $expected = [
             'ul' => ['class' => 'pagination pagination-lg'],
             ['li' => ['class' => 'active']], '<span', '1', 'span' => ['class' => 'sr-only'], '(current)', '/span', '/span', '/li',
-            '<li', ['a' => ['href' => '/clients?page=2']], '2', '/a', '/li',
+            '<li', ['a' => ['href' => '/clients/index?page=2']], '2', '/a', '/li',
             '/ul',
         ];
         $this->assertHtml($expected, $result);
-    }
 
-    protected function setupHelper($options)
-    {
-        $request = $this->request->withAttribute('params', [
-            'pass' => [],
-            'paging' => $options,
-        ]);
-
-        $this->View = new View($request);
-        $this->Paginator = new PaginatorHelper($this->View);
+        $result = $this->Paginator->links(['size' => 'sx']);
+        $this->assertFalse($result);
     }
 }

@@ -1,17 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace BootstrapUI\Test\TestCase\View\Helper;
 
-use BootstrapUI\View\Helper\OptionsAwareTrait;
 use Cake\TestSuite\TestCase;
-
-/**
- * TestOptionsAware
- */
-class TestOptionsAware
-{
-    use OptionsAwareTrait;
-}
+use TestApp\Test\TestOptionsAware;
 
 /**
  * OptionsAwareTraitTest
@@ -21,14 +14,14 @@ class OptionsAwareTraitTest extends TestCase
     /**
      * @var OptionsAwareTrait
      */
-    protected $object;
+    public $object;
 
     /**
      * setUp method
      *
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->object = new TestOptionsAware();
@@ -37,7 +30,7 @@ class OptionsAwareTraitTest extends TestCase
     public function testApplyButtonStyles()
     {
         $this->assertEquals(['class' => 'btn btn-default'], $this->object->applyButtonClasses([]));
-        foreach (['default', 'success', 'warning', 'danger', 'info', 'primary'] as $style) {
+        foreach (['default', 'primary', 'success', 'info', 'warning', 'danger'] as $style) {
             $this->assertEquals(['class' => "btn-{$style} btn"], $this->object->applyButtonClasses(['class' => $style]));
             $this->assertEquals(['class' => "btn-{$style} btn"], $this->object->applyButtonClasses(['class' => "btn-$style"]));
         }
@@ -45,9 +38,8 @@ class OptionsAwareTraitTest extends TestCase
 
     public function testRenameClasses()
     {
-        $this->assertEquals(['class' => ''], $this->object->renameClasses(['a' => 'b'], []));
-        $this->assertEquals(['class' => 'b'], $this->object->renameClasses(['a' => 'b'], ['class' => 'a']));
-        $this->assertEquals(['class' => 'b'], $this->object->renameClasses(['a' => 'b', 'c' => 'd'], ['class' => 'a']));
+        $this->assertEquals(['class' => 'btn-primary'], $this->object->renameClasses('btn', ['class' => 'primary']));
+        $this->assertEquals(['class' => 'alert-success'], $this->object->renameClasses('alert', ['class' => 'success']));
     }
 
     public function testHasAnyClass()
@@ -81,6 +73,18 @@ class OptionsAwareTraitTest extends TestCase
         $this->assertEquals(['class' => 'x y z a b c'], $this->object->injectClasses('a b c', ['class' => 'x y z', 'skip' => 'm']));
     }
 
+    public function testRemoveClasses()
+    {
+        $this->assertEquals(['class' => ''], $this->object->removeClasses('a', []));
+        $this->assertEquals(['class' => ''], $this->object->removeClasses('a', ['class' => 'a']));
+        $this->assertEquals(['class' => ''], $this->object->removeClasses('a', ['class' => 'a a a']));
+        $this->assertEquals(['class' => 'b c'], $this->object->removeClasses('a', ['class' => 'a b c']));
+        $this->assertEquals(['class' => 'b'], $this->object->removeClasses('a c', ['class' => 'a b c']));
+        $this->assertEquals(['class' => 'a b c'], $this->object->removeClasses('x y z', ['class' => 'a b c']));
+        $this->assertEquals(['class' => 'b c'], $this->object->removeClasses('a', ['class' => ['a', 'b', 'c']]));
+        $this->assertEquals(['class' => 'b'], $this->object->removeClasses(['a', 'c'], ['class' => ['a', 'b', 'c']]));
+    }
+
     public function testCheckClasses()
     {
         foreach (['a', 'a b c', ['a'], ['a', 'b', 'c']] as $class) {
@@ -92,7 +96,40 @@ class OptionsAwareTraitTest extends TestCase
         $this->assertTrue($this->object->checkClasses('a', ['class' => 'a']));
         $this->assertTrue($this->object->checkClasses('a b c', ['class' => 'c b a']));
         $this->assertTrue($this->object->checkClasses('a b c', ['class' => ['c', 'b', 'a']]));
+    }
 
-        $this->assertFalse($this->object->checkClasses('a', ['a']));
+    public function testGenClassName()
+    {
+        $this->assertEquals('btn-success', $this->object->genClassName('btn', 'success'));
+        $this->assertFalse($this->object->genClassName('unknown', 'primary'));
+        $this->assertFalse($this->object->genClassName('btn', 'unknown'));
+    }
+
+    public function testGenAllClassNames()
+    {
+        $res = [
+            'default',
+            'primary',
+            'success',
+            'info',
+            'warning',
+            'danger',
+            'link',
+            'xs',
+            'sm',
+            'lg',
+            'btn-default',
+            'btn-primary',
+            'btn-success',
+            'btn-info',
+            'btn-warning',
+            'btn-danger',
+            'btn-link',
+            'btn-xs',
+            'btn-sm',
+            'btn-lg',
+        ];
+
+        $this->assertEquals($res, $this->object->genAllClassNames('btn'));
     }
 }

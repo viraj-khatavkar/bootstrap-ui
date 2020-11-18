@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace BootstrapUI\View\Helper;
 
 use Cake\View\View;
@@ -6,11 +8,11 @@ use Cake\View\View;
 class PaginatorHelper extends \Cake\View\Helper\PaginatorHelper
 {
     /**
-     * Request instance.
+     * Allowed sizes.
      *
-     * @var \Cake\Http\ServerRequest;
+     * @var string[]
      */
-    public $request;
+    protected $_allowedSizes = ['sm', 'lg'];
 
     /**
      * Constructor. Overridden to merge passed args with URL options.
@@ -20,12 +22,6 @@ class PaginatorHelper extends \Cake\View\Helper\PaginatorHelper
      */
     public function __construct(View $View, array $config = [])
     {
-        if (method_exists($View, 'getRequest')) {
-            $this->request = $View->getRequest();
-        } else {
-            $this->request = $View->request;
-        }
-
         $this->_defaultConfig['templates'] = [
             'nextActive' => '<li class="next"><a rel="next" aria-label="Next" href="{{url}}">' .
                             '<span aria-hidden="true">{{text}}</span></a></li>',
@@ -45,11 +41,11 @@ class PaginatorHelper extends \Cake\View\Helper\PaginatorHelper
     }
 
     /**
-     * Returns a set of numbers for the paged result set.
+     * Returns a set of numbers for the paged result set, wrapped in a ul.
      *
      * In addition to the numbers, the method can also generate previous and next
      * links using additional options as shown below which are not available in
-     * CakePHP core's PaginatorHelper::numbers().
+     * CakePHP core's PaginatorHelper::numbers(). It also wraps the numbers into a ul tag.
      *
      * ### Options
      *
@@ -59,22 +55,25 @@ class PaginatorHelper extends \Cake\View\Helper\PaginatorHelper
      *   using `'size' => 'lg'` would add class `pagination-lg` to UL tag.
      *
      * @param array $options Options for the numbers.
-     * @return string Numbers string.
+     * @return string|false Numbers string.
      * @link http://book.cakephp.org/3.0/en/views/helpers/paginator.html#creating-page-number-links
      */
-    public function numbers(array $options = [])
+    public function links(array $options = [])
     {
         $class = 'pagination';
 
         $options += [
             'class' => $class,
-            'after' => '</ul>',
+            'after' => '',
             'size' => null,
         ];
 
         $options['class'] = implode(' ', (array)$options['class']);
 
         if (!empty($options['size'])) {
+            if (!in_array($options['size'], $this->_allowedSizes)) {
+                return false;
+            }
             $options['class'] .= " {$class}-{$options['size']}";
         }
 
@@ -95,8 +94,10 @@ class PaginatorHelper extends \Cake\View\Helper\PaginatorHelper
             if ($options['next'] === true) {
                 $options['next'] = $this->getConfig('labels.next');
             }
-            $options['after'] = $this->next($options['next'], ['escape' => false]) . $options['after'];
+            $options['after'] = $this->next($options['next'], ['escape' => false]);
         }
+
+        $options['after'] .= '</ul>';
 
         return parent::numbers($options);
     }

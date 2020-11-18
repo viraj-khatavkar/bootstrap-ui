@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace BootstrapUI\View\Helper;
 
 use Cake\View\Helper\BreadcrumbsHelper as CoreBreadcrumbsHelper;
@@ -6,7 +8,7 @@ use Cake\View\Helper\BreadcrumbsHelper as CoreBreadcrumbsHelper;
 class BreadcrumbsHelper extends CoreBreadcrumbsHelper
 {
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     protected $_defaultConfig = [
         'templates' => [
@@ -27,9 +29,9 @@ class BreadcrumbsHelper extends CoreBreadcrumbsHelper
     ];
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
-    public function render(array $attributes = [], array $separator = [])
+    public function render(array $attributes = [], array $separator = []): string
     {
         $attributes += $this->_defaultAttributes;
 

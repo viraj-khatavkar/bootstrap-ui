@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace BootstrapUI\View\Widget;
 
 use BootstrapUI\View\Helper\OptionsAwareTrait;
@@ -14,16 +16,17 @@ trait InputgroupTrait
      * Apart from the standard data keys used by a widget you can use following
      * extra keys:
      *
-     * - `append` Append HTML addon to input.
-     * - `prepend` Prepend HTML addon to input.
-     *
-     * Note: The addon string is not escaped, so make sure to use h() if it is not HTML content.
+     * - `append` Append addon to input.
+     * - `prepend` Prepend addon to input.
+     * - `size` Append/Prepend can have option size (sm/lg) for wrapping container
+     * - `input` If set it will be used as input tag between append and prepend addons.
+     *   By default parent::render() will be called to get input tag.
      *
      * @param array $data The data to build an input with.
      * @param \Cake\View\Form\ContextInterface $context The current form context.
      * @return string
      */
-    protected function _withInputGroup(array $data, ContextInterface $context)
+    protected function _withInputGroup(array $data, ContextInterface $context): string
     {
         $data += [
             'prepend' => null,
@@ -66,7 +69,7 @@ trait InputgroupTrait
      * @param array $data Widget data.
      * @return string
      */
-    protected function _addon($addon, $data)
+    protected function _addon(string $addon, array $data): string
     {
         if (is_string($addon)) {
             $class = 'input-group-' . ($this->_isButton($addon) ? 'btn' : 'addon');
@@ -93,7 +96,7 @@ trait InputgroupTrait
      * @param string $html Markup to check.
      * @return bool TRUE if it's a button.
      */
-    protected function _isButton($html)
+    protected function _isButton(string $html): bool
     {
         return strpos($html, '<button') !== false || strpos($html, 'type="submit"') !== false;
     }

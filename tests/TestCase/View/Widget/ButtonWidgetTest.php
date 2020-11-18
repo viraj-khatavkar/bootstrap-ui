@@ -1,11 +1,10 @@
 <?php
+declare(strict_types=1);
 
 namespace BootstrapUI\Test\TestCase\View\Widget;
 
 use BootstrapUI\View\Widget\ButtonWidget;
-use Cake\Http\Session;
 use Cake\TestSuite\TestCase;
-use Cake\View\Form\ContextInterface;
 use Cake\View\StringTemplate;
 
 /**
@@ -15,21 +14,21 @@ use Cake\View\StringTemplate;
 class ButtonWidgetTest extends TestCase
 {
     /**
-     * @var StringTemplate
+     * @var \Cake\View\StringTemplate
      */
-    protected $templates;
+    public $templates;
 
     /**
-     * @var ContextInterface
+     * @var \Cake\View\Form\ContextInterface
      */
-    protected $context;
+    public $context;
 
     /**
      * setUp method
      *
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $templates = [
@@ -65,10 +64,10 @@ class ButtonWidgetTest extends TestCase
         $styles = [
             'default',
             'success',
-            'warning',
-            'danger',
             'info',
-            'primary',
+            'danger',
+            'warning',
+            'link',
         ];
 
         $button = new ButtonWidget($this->templates);
@@ -119,16 +118,18 @@ class ButtonWidgetTest extends TestCase
         $button = new ButtonWidget($this->templates);
         $data = [
             'text' => 'Some <value>',
+            'escapeTitle' => false,
         ];
         $result = $button->render($data, $this->context);
         $expected = [
-            'button' => ['type' => 'submit', 'class' => 'btn btn-default'],
+            'button' => ['class' => 'btn btn-default', 'type' => 'submit'],
             'Some <value>',
             '/button',
         ];
         $this->assertHtml($expected, $result);
 
         $data['escape'] = true;
+        $data['escapeTitle'] = true;
         $result = $button->render($data, $this->context);
         $expected = [
             'button' => ['type' => 'submit', 'class' => 'btn btn-default'],
